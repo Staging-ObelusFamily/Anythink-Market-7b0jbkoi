@@ -79,9 +79,9 @@ class ItemsController < ApplicationController
         http.request(request)
       end
 
-      @item.image = response.body.data.index(0).url
-
-      puts response.body
+      result = JSON.parse(response.body)
+      urlhash = result["data"].first.symbolize_keys
+      @item.image = urlhash[:url]
     end
 
     if @item.save
