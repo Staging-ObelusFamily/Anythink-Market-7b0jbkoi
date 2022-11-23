@@ -64,7 +64,7 @@ class ItemsController < ApplicationController
       uri = URI.parse("https://api.openai.com/v1/images/generations")
       request = Net::HTTP::Post.new(uri)
       request.content_type = "application/json"
-      request["Authorization"] = "Bearer " + process.env.OPENAI_API_KEY
+      request["Authorization"] = "Bearer " + ENV.OPENAI_API_KEY
       request.body = JSON.dump({
         "prompt" => @item.title,
         "n" => 1,
