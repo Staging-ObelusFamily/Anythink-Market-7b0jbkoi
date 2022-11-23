@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 require_relative "../../lib/event"
+require 'net/http'
+require 'uri'
+require 'json'
 include Event
 
 class ItemsController < ApplicationController
@@ -53,6 +56,33 @@ class ItemsController < ApplicationController
   def create
     @item = Item.new(item_params)
     @item.user = current_user
+
+    if (@item.image.nil? || @item.image.empty?) 
+      puts "========================= HERE"
+      puts @item.title
+
+      uri = URI.parse("https://api.openai.com/v1/images/generations")
+      request = Net::HTTP::Post.new(uri)
+      request.content_type = "application/json"
+      request["Authorization"] = "Bearer " + process.env.OPENAI_API_KEY
+      request.body = JSON.dump({
+        "prompt" => @item.title,
+        "n" => 1,
+        "size" => "256x256"
+      })
+
+      req_options = {
+        use_ssl: uri.scheme == "https",
+      }
+
+      response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+        http.request(request)
+      end
+
+      @item.image = response.body.data.index(0).url
+
+      puts response.body
+    end
 
     if @item.save
       sendEvent("item_created", { item: item_params })
